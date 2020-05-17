@@ -1,11 +1,13 @@
 #include "graph.h"
 
-
+//Constructor
 graph::graph(const int size)
 {
 	num_of_vertices = size;
 	density = 0;
 	num_of_edges = 0;
+	srand(time(NULL));
+	solution.resize(size);
 	matrix.resize(size);
 	for (int i = 0; i < size; i++)
 		matrix[i].resize(size);
@@ -43,21 +45,6 @@ vector<int> graph::get_neighbors(int source)
 	return neighbors_arr;
 }
 
-int graph::get_closest_neighbor(int vertex)
-{
-	int min_distance = 101;
-	int closest_neighbor = -1;
-	for (int i = 0; i < num_of_vertices; i++)
-	{
-		if (vertex != i)
-			if (matrix[vertex][i] < min_distance && matrix[vertex][i] > 0)
-			{
-				closest_neighbor = i;
-				min_distance = matrix[vertex][i];
-			}
-	}
-	return closest_neighbor;
-}
 
 void graph::add_edge(int source, int dest, int cost)
 {
@@ -98,41 +85,62 @@ void graph::generate_cost(int source, int dest)
 	matrix[dest][source] = val;
 }
 
+int graph::get_closest_neighbor(vector<int> distance, vector<bool> is_visited)
+{
+	int min_distance = MAX_DISTANCE;
+	int closest_neighbor;
+	for (int i = 0; i < num_of_vertices; i++)
+	{
+		if (distance[i] <= min_distance && is_visited[i] == false)
+		{
+			closest_neighbor = i;
+			min_distance = distance[i];
+		}
+	}
+	return closest_neighbor;
+}
+
 
 vector<int> graph::dijkstra(int source)
 {
 	vector<int>distance;
-	set<int> unvisited_ver;
+	vector<bool> is_visited;
+
 	distance.resize(num_of_vertices);
-	
+	is_visited.resize(num_of_vertices);
+
 	for (int i = 0; i < num_of_vertices; i++)
 	{
-		if (i != source)
-		{
-			distance[i] = INFINITY_VAL;
-			unvisited_ver.insert(i);
-		}
+		distance[i] = MAX_DISTANCE;
+		is_visited[i] = false;
 	}
 	distance[source] = 0;
-	int vertex = source;
-	int alt_value = -1;
-	while (!unvisited_ver.empty())
-	{
-		vertex = get_closest_neighbor(vertex);
-		unvisited_ver.erase(vertex);
-		vector<int> vertex_neighbors = get_neighbors(vertex);
-		for (int i = 0; i < vertex_neighbors.size(); i++)
-		{
-			if (distance[vertex] == INFINITY_VAL)			//if not initialized.
-				alt_value = matrix[vertex][i];   //value of edge.
-			else
-				alt_value = distance[vertex] + matrix[vertex][i];
 
-			if (alt_value < distance[i])
-				distance[i] = alt_value;
+	for (int u = 0; u < num_of_vertices - 1; u++)
+	{
+		int vertex = get_closest_neighbor(distance,is_visited);
+		is_visited[vertex] = true;
+
+		for (int v = 0; v < num_of_vertices; v++)
+		{
+			// check: if vertex wasnt visited, if there is an edge, if distance was init,
+			//			if total distance is smaller then current. THEN UPDATE!
+			if (!is_visited[v] && matrix[u][v] && distance[u] != INFINITY_VAL &&
+				distance[u] + matrix[u][v] < distance[v])
+				distance[v] = distance[u] + matrix[u][v];
 		}
 	}
+	save_solution(distance);
+	print_solution();
 	return distance;
+}
+
+void graph::save_solution(vector<int> distance)
+{
+	for (int i = 0; i < num_of_vertices; i++)
+	{
+		solution[i] = distance[i];
+	}
 }
 
 void graph::print_mat()
@@ -141,9 +149,15 @@ void graph::print_mat()
 	for (int i = 0; i < num_of_vertices; i++)
 	{
 		for (int j = 0; j < num_of_vertices; j++)
-			cout << matrix[i][j] << "  ";
+			cout << matrix[i][j] << "	";
 		cout << endl;
 	}
+	cout << endl << endl;
 }
 
-
+void graph::print_solution()
+{
+	cout << "Vertex:			Distance from source:" << endl;
+	for (int i = 0; i < num_of_vertices; i++)
+		cout << i << " 			" << solution[i] << endl;
+}

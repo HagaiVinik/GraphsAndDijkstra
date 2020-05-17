@@ -21,10 +21,11 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
-#include <set>
+#include <ctime>
 
 const int NO_EDGE = 0;
-const int INFINITY_VAL = 10001;
+const int INFINITY_VAL = 100001;
+const int MAX_DISTANCE = 101;
 /*
 	Positive cost - above zero
 */
@@ -36,6 +37,7 @@ class graph
 {
 private:
 	vector<vector<int>> matrix;
+	vector<int> solution;
 	int num_of_vertices;
 	int num_of_edges;
 	int density;
@@ -48,10 +50,12 @@ public:
 	void generate_cost(int source, int dest);
 	bool adjacent(int source, int dest);
 	int get_cost(int source, int dest);
+	void save_solution(vector<int> distance);
 	void print_mat();
+	void print_solution();
 
 	vector<int> get_neighbors(int source);
-	int get_closest_neighbor(int vertex);
+	int get_closest_neighbor(vector<int> distance, vector<bool> is_visited);
 	void add_edge(int source, int dest, int cost);
 	void delete_edge(int source, int dest);
 
